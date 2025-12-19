@@ -23,6 +23,7 @@ function initSupabase(url, key) {
         return null;
     }
 
+    console.log('Supabase Client v2.0 Initializing...');
     supabase = createClient(url, key);
     return supabase;
 }
