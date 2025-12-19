@@ -246,6 +246,22 @@
         }
 
         // ... utilitários ...
+        function mostrarLoading() {
+            esconderTodosEstados();
+            loadingState.classList.remove('hidden');
+        }
+
+        function mostrarVazio() {
+            esconderTodosEstados();
+            emptyState.classList.remove('hidden');
+        }
+
+        function mostrarErro(mensagem) {
+            esconderTodosEstados();
+            errorMessage.textContent = mensagem;
+            errorState.classList.remove('hidden');
+        }
+
         function esconderTodosEstados() {
             loadingState.classList.add('hidden');
             rankingList.classList.add('hidden');
