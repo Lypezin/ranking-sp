@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ranking de Entregadores - Sistema de Pontos">
+    <title>Ranking de Entregadores</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <h1>🏆 Ranking de Entregadores</h1>
+                    <nav class="header-nav">
+                        <a href="upload.html" class="btn-nav">📤 Upload</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Search Section -->
+                <section class="search-section">
+                    <div class="search-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input 
+                            type="text" 
+                            id="search-input" 
+                            class="search-input" 
+                            placeholder="Buscar entregador por nome..."
+                            autocomplete="off"
+                        >
+                    </div>
+                </section>
+
+                <!-- Ranking Section -->
+                <section id="ranking-section">
+                    <!-- Loading state -->
+                    <div id="loading-state" class="loading">
+                        <div class="spinner"></div>
+                        <p>Carregando ranking...</p>
+                    </div>
+
+                    <!-- Ranking List -->
+                    <div id="ranking-list" class="ranking-list hidden"></div>
+
+                    <!-- Empty State -->
+                    <div id="empty-state" class="empty-state hidden">
+                        <div class="empty-state-icon">📭</div>
+                        <p class="empty-state-text">Nenhum entregador encontrado.</p>
+                        <p class="text-secondary mt-2">
+                            <a href="upload.html" style="color: var(--primary);">Faça o upload</a> 
+                            dos dados para começar.
+                        </p>
+                    </div>
+
+                    <!-- Error State -->
+                    <div id="error-state" class="hidden">
+                        <div class="alert alert-error">
+                            <span>⚠️</span>
+                            <div>
+                                <strong>Erro ao carregar dados</strong>
+                                <p id="error-message">Ocorreu um erro ao buscar o ranking.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="supabase-client.js"></script>
+    <script>
+        // Configuração do Supabase
+        // IMPORTANTE: Substitua estas variáveis pelas suas credenciais
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+        // Estado da aplicação
+        let todosEntregadores = [];
+        let supabaseClient = null;
+
+        // Elementos do DOM
+        const loadingState = document.getElementById('loading-state');
+        const rankingList = document.getElementById('ranking-list');
+        const emptyState = document.getElementById('empty-state');
+        const errorState = document.getElementById('error-state');
+        const errorMessage = document.getElementById('error-message');
+        const searchInput = document.getElementById('search-input');
+
+        /**
+         * Inicializa a aplicação
+         */
+        async function inicializar() {
+            try {
+                // Verificar se as credenciais foram configuradas
+                if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+                    mostrarErro('Configure as credenciais do Supabase no arquivo index.html');
+                    return;
+                }
+
+                // Inicializar Supabase
+                supabaseClient = SupabaseClient.initSupabase(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                if (!supabaseClient) {
+                    mostrarErro('Erro ao inicializar Supabase');
+                    return;
+                }
+
+                // Carregar ranking
+                await carregarRanking();
+
+                // Configurar pesquisa
+                configurarPesquisa();
+
+            } catch (error) {
+                console.error('Erro na inicialização:', error);
+                mostrarErro(error.message);
+            }
+        }
+
+        /**
+         * Carrega o ranking do Supabase
+         */
+        async function carregarRanking() {
+            mostrarLoading();
+
+            try {
+                const ranking = await SupabaseClient.buscarRanking(500);
+                todosEntregadores = ranking;
+
+                if (ranking.length === 0) {
+                    mostrarVazio();
+                } else {
+                    renderizarRanking(ranking);
+                }
+
+            } catch (error) {
+                console.error('Erro ao carregar ranking:', error);
+                mostrarErro(`Erro ao carregar dados: ${error.message}`);
+            }
+        }
+
+        /**
+         * Renderiza a lista de entregadores
+         */
+        function renderizarRanking(entregadores) {
+            esconderTodosEstados();
+            rankingList.classList.remove('hidden');
+
+            rankingList.innerHTML = entregadores.map((entregador, index) => {
+                const posicao = index + 1;
+                return `
+                    <div class="ranking-item">
+                        <div class="ranking-position">${posicao}</div>
+                        <div class="ranking-info">
+                            <div class="ranking-name">${entregador.pessoa_entregadora}</div>
+                            <div class="ranking-details">
+                                ${entregador.total_entregas} entregas • 
+                                ${entregador.total_turnos} turnos • 
+                                ${entregador.media_percentual_online.toFixed(1)}% online médio
+                            </div>
+                        </div>
+                        <div class="ranking-points">
+                            <div class="points-value">${entregador.total_pontos.toLocaleString('pt-BR')}</div>
+                            <div class="points-label">Pontos</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Configura a funcionalidade de pesquisa
+         */
+        function configurarPesquisa() {
+            let timeoutId;
+
+            searchInput.addEventListener('input', (e) => {
+                const termo = e.target.value.trim().toLowerCase();
+
+                // Debounce
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    pesquisarEntregadores(termo);
+                }, 300);
+            });
+        }
+
+        /**
+         * Pesquisa entregadores localmente
+         */
+        function pesquisarEntregadores(termo) {
+            if (!termo) {
+                renderizarRanking(todosEntregadores);
+                return;
+            }
+
+            const resultados = todosEntregadores.filter(entregador => 
+                entregador.pessoa_entregadora.toLowerCase().includes(termo)
+            );
+
+            if (resultados.length === 0) {
+                mostrarVazio();
+            } else {
+                renderizarRanking(resultados);
+            }
+        }
+
+        /**
+         * Utilitários para mostrar/esconder estados
+         */
+        function mostrarLoading() {
+            esconderTodosEstados();
+            loadingState.classList.remove('hidden');
+        }
+
+        function mostrarVazio() {
+            esconderTodosEstados();
+            emptyState.classList.remove('hidden');
+        }
+
+        function mostrarErro(mensagem) {
+            esconderTodosEstados();
+            errorMessage.textContent = mensagem;
+            errorState.classList.remove('hidden');
+        }
+
+        function esconderTodosEstados() {
+            loadingState.classList.add('hidden');
+            rankingList.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            errorState.classList.add('hidden');
+        }
+
+        // Inicializar quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', inicializar);
+    </script>
+</body>
+</html>

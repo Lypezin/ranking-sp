@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Upload de Dados - Sistema de Ranking">
+    <title>Upload de Dados - Ranking de Entregadores</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- SheetJS for Excel processing -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <h1>📤 Upload de Dados</h1>
+                    <nav class="header-nav">
+                        <a href="index.html" class="btn-nav">🏆 Ranking</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Instructions Card -->
+                <div class="card mb-4">
+                    <h2 style="margin-bottom: 1rem; color: var(--primary);">📋 Instruções</h2>
+                    <ol style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>Selecione o arquivo Excel (.xlsx ou .xls) com os dados de turnos</li>
+                        <li>O arquivo deve conter todas as 19 colunas esperadas</li>
+                        <li>Os pontos serão calculados automaticamente</li>
+                        <li>O ranking será atualizado após o upload</li>
+                    </ol>
+
+                    <div class="alert alert-info mt-3">
+                        <span>ℹ️</span>
+                        <div>
+                            <strong>Colunas esperadas:</strong>
+                            <p style="font-size: 0.875rem; margin-top: 0.5rem;">
+                                data_do_periodo, periodo, duracao_do_periodo,
+                                numero_minimo_de_entregadores_regulares_na_escala,
+                                tag, id_da_pessoa_entregadora, pessoa_entregadora, praca, sub_praca, origem,
+                                tempo_disponivel_escalado, tempo_disponivel_absoluto, numero_de_corridas_ofertadas,
+                                numero_de_corridas_aceitas, numero_de_corridas_rejeitadas,
+                                numero_de_corridas_completadas,
+                                numero_de_corridas_canceladas_pela_pessoa_entregadora,
+                                numero_de_pedidos_aceitos_e_concluidos,
+                                soma_das_taxas_das_corridas_aceitas
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Area -->
+                <div class="card">
+                    <div id="upload-area" class="upload-area">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">Clique ou arraste o arquivo Excel aqui</div>
+                        <div class="upload-hint">Formatos aceitos: .xlsx, .xls</div>
+                        <input type="file" id="file-input" accept=".xlsx,.xls">
+                    </div>
+
+                    <!-- File Info -->
+                    <div id="file-info" class="hidden mt-3">
+                        <div class="alert alert-info">
+                            <span>📄</span>
+                            <div>
+                                <strong id="file-name"></strong>
+                                <p id="file-details" style="font-size: 0.875rem; margin-top: 0.25rem;"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress -->
+                    <div id="progress-container" class="hidden mt-3">
+                        <div style="margin-bottom: 0.5rem; font-weight: 600;" id="progress-text">Processando...</div>
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;"
+                            id="progress-details"></div>
+                    </div>
+
+                    <!-- Upload Button -->
+                    <button id="upload-btn" class="btn btn-primary mt-3 hidden" style="width: 100%;">
+                        🚀 Processar e Enviar Dados
+                    </button>
+
+                    <!-- Success Message -->
+                    <div id="success-message" class="hidden mt-3">
+                        <div class="alert alert-success">
+                            <span>✅</span>
+                            <div>
+                                <strong>Upload concluído com sucesso!</strong>
+                                <p id="success-details" style="font-size: 0.875rem; margin-top: 0.5rem;"></p>
+                                <a href="index.html" class="btn btn-primary mt-2">Ver Ranking</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="error-message" class="hidden mt-3">
+                        <div class="alert alert-error">
+                            <span>❌</span>
+                            <div>
+                                <strong>Erro no upload</strong>
+                                <p id="error-details" style="font-size: 0.875rem; margin-top: 0.5rem;"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="ranking-calculator.js"></script>
+    <script src="supabase-client.js"></script>
+    <script>
+        // Configuração do Supabase
+        // IMPORTANTE: Use a SERVICE_ROLE_KEY para upload (não compartilhe publicamente!)
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_SERVICE_ROLE_KEY = 'YOUR_SUPABASE_SERVICE_ROLE_KEY';
+
+        // Mapeamento de colunas do Excel
+        const EXCEL_COLUMNS = [
+            'data_do_periodo',
+            'periodo',
+            'duracao_do_periodo',
+            'numero_minimo_de_entregadores_regulares_na_escala',
+            'tag',
+            'id_da_pessoa_entregadora',
+            'pessoa_entregadora',
+            'praca',
+            'sub_praca',
+            'origem',
+            'tempo_disponivel_escalado',
+            'tempo_disponivel_absoluto',
+            'numero_de_corridas_ofertadas',
+            'numero_de_corridas_aceitas',
+            'numero_de_corridas_rejeitadas',
+            'numero_de_corridas_completadas',
+            'numero_de_corridas_canceladas_pela_pessoa_entregadora',
+            'numero_de_pedidos_aceitos_e_concluidos',
+            'soma_das_taxas_das_corridas_aceitas'
+        ];
+
+        // Estado
+        let selectedFile = null;
+        let parsedData = null;
+        let supabaseClient = null;
+
+        // Elementos DOM
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const fileDetails = document.getElementById('file-details');
+        const uploadBtn = document.getElementById('upload-btn');
+        const progressContainer = document.getElementById('progress-container');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const progressDetails = document.getElementById('progress-details');
+        const successMessage = document.getElementById('success-message');
+        const successDetails = document.getElementById('success-details');
+        const errorMessage = document.getElementById('error-message');
+        const errorDetails = document.getElementById('error-details');
+
+        /**
+         * Inicialização
+         */
+        function inicializar() {
+            // Verificar credenciais
+            if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_SERVICE_ROLE_KEY === 'YOUR_SUPABASE_SERVICE_ROLE_KEY') {
+                mostrarErro('Configure as credenciais do Supabase no arquivo upload.html');
+                uploadArea.style.pointerEvents = 'none';
+                uploadArea.style.opacity = '0.5';
+                return;
+            }
+
+            // Inicializar Supabase com service role key
+            supabaseClient = SupabaseClient.initSupabase(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+            // Event listeners
+            uploadArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileSelect);
+            uploadBtn.addEventListener('click', processarEEnviar);
+
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    handleFileSelect({ target: { files } });
+                }
+            });
+        }
+
+        /**
+         * Manipula seleção de arquivo
+         */
+        async function handleFileSelect(event) {
+            esconderMensagens();
+
+            const file = event.target.files[0];
+            if (!file) return;
+
+            selectedFile = file;
+
+            // Mostrar info do arquivo
+            fileName.textContent = file.name;
+            fileDetails.textContent = `Tamanho: ${(file.size / 1024).toFixed(2)} KB`;
+            fileInfo.classList.remove('hidden');
+            uploadBtn.classList.remove('hidden');
+
+            try {
+                // Ler e parsear Excel
+                await lerEParsearExcel(file);
+            } catch (error) {
+                console.error('Erro ao ler arquivo:', error);
+                mostrarErro(`Erro ao ler arquivo: ${error.message}`);
+                uploadBtn.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Lê e parseia arquivo Excel
+         */
+        async function lerEParsearExcel(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+
+                        // Pegar primeira planilha
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+
+                        // Converter para JSON
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                        if (jsonData.length === 0) {
+                            reject(new Error('A planilha está vazia'));
+                            return;
+                        }
+
+                        // Validar colunas
+                        const firstRow = jsonData[0];
+                        const colunasEncontradas = Object.keys(firstRow);
+                        const colunasFaltando = EXCEL_COLUMNS.filter(col => !colunasEncontradas.includes(col));
+
+                        if (colunasFaltando.length > 0) {
+                            console.warn('Colunas faltando:', colunasFaltando);
+                            // Continuar mesmo assim, mas avisar
+                        }
+
+                        parsedData = jsonData;
+                        fileDetails.textContent = `${jsonData.length} linhas encontradas`;
+
+                        resolve(jsonData);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+
+                reader.onerror = () => reject(new Error('Erro ao ler o arquivo'));
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        /**
+         * Processa dados e envia para Supabase
+         */
+        async function processarEEnviar() {
+            if (!parsedData || parsedData.length === 0) {
+                mostrarErro('Nenhum dado para processar');
+                return;
+            }
+
+            esconderMensagens();
+            mostrarProgresso(0, 'Iniciando processamento...');
+            uploadBtn.disabled = true;
+
+            try {
+                // Passo 1: Processar dados e calcular pontos
+                atualizarProgresso(20, 'Calculando pontos...');
+                const turnosProcessados = processarTodosOsTurnos(parsedData);
+
+                // Passo 2: Preparar dados para Supabase
+                atualizarProgresso(40, 'Preparando dados para envio...');
+                const turnosParaInserir = turnosProcessados.map(turno => ({
+                    data_do_periodo: turno.data_do_periodo,
+                    periodo: turno.periodo || null,
+                    duracao_do_periodo: turno.duracao_do_periodo || null,
+                    numero_minimo_de_entregadores_regulares_na_escala: turno.numero_minimo_de_entregadores_regulares_na_escala || null,
+                    tag: turno.tag || null,
+                    id_da_pessoa_entregadora: turno.id_da_pessoa_entregadora,
+                    pessoa_entregadora: turno.pessoa_entregadora,
+                    praca: turno.praca || null,
+                    sub_praca: turno.sub_praca || null,
+                    origem: turno.origem || null,
+                    tempo_disponivel_escalado: turno.tempo_disponivel_escalado || null,
+                    tempo_disponivel_absoluto: turno.tempo_disponivel_absoluto || null,
+                    numero_de_corridas_ofertadas: turno.numero_de_corridas_ofertadas || 0,
+                    numero_de_corridas_aceitas: turno.numero_de_corridas_aceitas || 0,
+                    numero_de_corridas_rejeitadas: turno.numero_de_corridas_rejeitadas || 0,
+                    numero_de_corridas_completadas: turno.numero_de_corridas_completadas || 0,
+                    numero_de_corridas_canceladas_pela_pessoa_entregadora: turno.numero_de_corridas_canceladas_pela_pessoa_entregadora || 0,
+                    numero_de_pedidos_aceitos_e_concluidos: turno.numero_de_pedidos_aceitos_e_concluidos || 0,
+                    soma_das_taxas_das_corridas_aceitas: turno.soma_das_taxas_das_corridas_aceitas || 0,
+                    percentual_tempo_online: turno.percentual_tempo_online,
+                    pontos_entregas: turno.pontos_entregas,
+                    bonus_90_online: turno.bonus_90_online,
+                    bonus_data_especial: turno.bonus_data_especial,
+                    total_pontos_turno: turno.total_pontos_turno,
+                    entregas_no_dia: turno.entregas_no_dia,
+                    bonus_meta_diaria: turno.bonus_meta_diaria,
+                    total_pontos_final: turno.total_pontos_final
+                }));
+
+                // Passo 3: Enviar para Supabase
+                atualizarProgresso(60, `Enviando ${turnosParaInserir.length} turnos...`);
+                await SupabaseClient.uploadCompleto(turnosParaInserir);
+
+                // Sucesso!
+                atualizarProgresso(100, 'Concluído!');
+                setTimeout(() => {
+                    progressContainer.classList.add('hidden');
+                    mostrarSucesso(`${turnosParaInserir.length} turnos processados e ranking atualizado com sucesso!`);
+                    uploadBtn.disabled = false;
+                }, 500);
+
+            } catch (error) {
+                console.error('Erro no processamento:', error);
+                progressContainer.classList.add('hidden');
+                mostrarErro(`Erro: ${error.message}`);
+                uploadBtn.disabled = false;
+            }
+        }
+
+        /**
+         * Utilitários de UI
+         */
+        function mostrarProgresso(percent, texto) {
+            progressContainer.classList.remove('hidden');
+            atualizarProgresso(percent, texto);
+        }
+
+        function atualizarProgresso(percent, texto) {
+            progressFill.style.width = `${percent}%`;
+            progressText.textContent = texto;
+            progressDetails.textContent = `${percent}%`;
+        }
+
+        function mostrarSucesso(mensagem) {
+            successDetails.textContent = mensagem;
+            successMessage.classList.remove('hidden');
+        }
+
+        function mostrarErro(mensagem) {
+            errorDetails.textContent = mensagem;
+            errorMessage.classList.remove('hidden');
+        }
+
+        function esconderMensagens() {
+            successMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', inicializar);
+    </script>
+</body>
+
+</html>
