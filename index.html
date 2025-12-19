@@ -12,6 +12,7 @@
 
     <!-- Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" type="image/png" href="/favicon.png">
 </head>
 
 <body>
@@ -21,9 +22,7 @@
             <div class="container">
                 <div class="header-content">
                     <h1>🏆 Ranking de Entregadores</h1>
-                    <nav class="header-nav">
-                        <a href="upload.html" class="btn-nav">📤 Upload</a>
-                    </nav>
+                    <!-- Upload button removed -->
                 </div>
             </div>
         </header>
@@ -194,6 +193,25 @@
             } else if (top3.length === 0) {
                 mostrarVazio();
             }
+        }
+
+
+
+        /**
+         * Configura a funcionalidade de pesquisa
+         */
+        function configurarPesquisa() {
+            let timeoutId;
+
+            searchInput.addEventListener('input', (e) => {
+                const termo = e.target.value.trim().toLowerCase();
+
+                // Debounce
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    pesquisarEntregadores(termo);
+                }, 300);
+            });
         }
 
         // ... pesquisarEntregadores ...
