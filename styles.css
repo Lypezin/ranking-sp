@@ -578,22 +578,25 @@ body {
     }
 
     .podium-avatar {
-        width: 2.5rem;
-        height: 2.5rem;
-        font-size: 1rem;
+        width: 3.5rem;
+        height: 3.5rem;
+        font-size: 1.2rem;
         border-width: 2px;
     }
 
     .podium-item.rank-1 .podium-avatar {
-        width: 4rem;
-        /* Slightly larger for image */
-        height: 4rem;
-        font-size: 1.25rem;
+        width: 5rem;
+        height: 5rem;
+        font-size: 1.5rem;
         margin-bottom: -10px;
-        /* Slight overlap with bar to connect */
         z-index: 10;
         background: var(--bg-card);
-        /* Ensure background behind image */
+    }
+
+    .podium-item.rank-2 .podium-avatar,
+    .podium-item.rank-3 .podium-avatar {
+        width: 4rem;
+        height: 4rem;
     }
 
     /* Prize Image Control */
