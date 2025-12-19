@@ -126,13 +126,13 @@
     </div>
 
     <!-- Scripts -->
-    <script src="ranking-calculator.js"></script>
-    <script src="supabase-client.js"></script>
-    <script>
+    <script type="module" src="ranking-calculator.js"></script>
+    <script type="module" src="supabase-client.js"></script>
+    <script type="module">
         // Configuração do Supabase
-        // IMPORTANTE: Use a SERVICE_ROLE_KEY para upload (não compartilhe publicamente!)
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-        const SUPABASE_SERVICE_ROLE_KEY = 'YOUR_SUPABASE_SERVICE_ROLE_KEY';
+        // Variáveis injetadas automaticamente pelo Vite a partir das env vars da Vercel
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+        const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
         // Mapeamento de colunas do Excel
         const EXCEL_COLUMNS = [
@@ -183,8 +183,8 @@
          */
         function inicializar() {
             // Verificar credenciais
-            if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_SERVICE_ROLE_KEY === 'YOUR_SUPABASE_SERVICE_ROLE_KEY') {
-                mostrarErro('Configure as credenciais do Supabase no arquivo upload.html');
+            if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+                mostrarErro('Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_SERVICE_ROLE_KEY na Vercel');
                 uploadArea.style.pointerEvents = 'none';
                 uploadArea.style.opacity = '0.5';
                 return;

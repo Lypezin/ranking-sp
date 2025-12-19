@@ -1,0 +1,17 @@
+{
+  "name": "ranking-entregadores",
+  "version": "1.0.0",
+  "description": "Sistema de ranking de entregadores com pontuação automática",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.3"
+  },
+  "devDependencies": {
+    "vite": "^5.0.11"
+  }
+}
