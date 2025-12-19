@@ -126,9 +126,10 @@
     </div>
 
     <!-- Scripts -->
-    <script type="module" src="ranking-calculator.js"></script>
-    <script type="module" src="supabase-client.js"></script>
     <script type="module">
+        import { SupabaseClient } from './supabase-client.js';
+        import { processarTodosOsTurnos } from './ranking-calculator.js';
+
         // Configuração do Supabase
         // Variáveis injetadas automaticamente pelo Vite a partir das env vars da Vercel
         const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;

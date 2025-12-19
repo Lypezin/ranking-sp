@@ -2,17 +2,12 @@
  * Cliente Supabase para o Sistema de Ranking
  * 
  * IMPORTANTE: Configure as variáveis de ambiente antes de usar:
- * - SUPABASE_URL: URL do seu projeto Supabase
- * - SUPABASE_ANON_KEY: Chave pública anônima (para leitura)
- * - SUPABASE_SERVICE_ROLE_KEY: Chave de serviço (para upload/escrita)
+ * - VITE_SUPABASE_URL: URL do seu projeto Supabase
+ * - VITE_SUPABASE_ANON_KEY: Chave pública anônima (para leitura)
+ * - VITE_SUPABASE_SERVICE_ROLE_KEY: Chave de serviço (para upload/escrita)
  */
 
-// Configuração do Supabase
-const SUPABASE_CONFIG = {
-    url: '', // Será preenchido dinamicamente
-    anonKey: '', // Será preenchido dinamicamente
-    serviceRoleKey: '' // Será preenchido dinamicamente (apenas para upload)
-};
+import { createClient } from '@supabase/supabase-js';
 
 // Cliente Supabase (será inicializado)
 let supabase = null;
@@ -23,15 +18,12 @@ let supabase = null;
  * @param {string} key - Chave de API (anon ou service_role)
  */
 function initSupabase(url, key) {
-    if (typeof supabase === 'undefined' || !supabase?.createClient) {
-        console.error('Supabase JS library não carregada. Inclua: <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>');
+    if (!url || !key) {
+        console.error('URL e Key do Supabase são obrigatórios');
         return null;
     }
 
-    SUPABASE_CONFIG.url = url;
-    SUPABASE_CONFIG.anonKey = key;
-
-    supabase = window.supabase.createClient(url, key);
+    supabase = createClient(url, key);
     return supabase;
 }
 
@@ -204,16 +196,14 @@ async function verificarConexao() {
     }
 }
 
-// Exportar funções para uso global
-if (typeof window !== 'undefined') {
-    window.SupabaseClient = {
-        initSupabase,
-        buscarRanking,
-        buscarEntregadoresPorNome,
-        inserirTurnos,
-        recalcularRanking,
-        limparTodosDados,
-        uploadCompleto,
-        verificarConexao
-    };
-}
+// Exportar funções
+export const SupabaseClient = {
+    initSupabase,
+    buscarRanking,
+    buscarEntregadoresPorNome,
+    inserirTurnos,
+    recalcularRanking,
+    limparTodosDados,
+    uploadCompleto,
+    verificarConexao
+};

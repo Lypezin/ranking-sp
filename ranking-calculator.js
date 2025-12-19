@@ -237,15 +237,13 @@ function calcularRanking(turnos) {
 }
 
 // Exportar funções para uso em outros módulos
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        isDataEspecial,
-        durationToSeconds,
-        calcularPercentualOnline,
-        calcularPontosTurno,
-        calcularEntregasNoDia,
-        calcularBonusMetaDiaria,
-        processarTodosOsTurnos,
-        calcularRanking
-    };
-}
+export {
+    isDataEspecial,
+    durationToSeconds,
+    calcularPercentualOnline,
+    calcularPontosTurno,
+    calcularEntregasNoDia,
+    calcularBonusMetaDiaria,
+    processarTodosOsTurnos,
+    calcularRanking
+};
