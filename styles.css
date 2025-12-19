@@ -306,6 +306,15 @@ body {
     animation: float 3s ease-in-out infinite;
 }
 
+.prize-image {
+    width: 120%;
+    height: 120%;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+    transform: scale(1.1);
+}
+
 /* Inner Text inside Bar */
 .podium-rank {
     font-size: 3rem;
