@@ -114,7 +114,32 @@ body {
     text-shadow: 0 2px 10px rgba(33, 150, 243, 0.2);
 }
 
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
 /* === Search Bar Modern === */
+.search-wrapper {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+    transition: transform var(--transition-base);
+}
+
+.search-icon {
+    position: absolute;
+    left: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--blue-400);
+    font-size: 1.25rem;
+    pointer-events: none;
+    z-index: 2;
+}
+
 .search-input {
     width: 100%;
     padding: 1rem 1rem 1rem 3.5rem;
@@ -135,8 +160,18 @@ body {
 
 /* === Podium Enhancements === */
 .podium-container {
-    min-height: 320px;
+    display: flex;
+    justify-content: center;
     align-items: flex-end;
+    gap: var(--spacing-md);
+    min-height: 320px;
+    padding-bottom: var(--spacing-lg);
+}
+
+/* === Main Content === */
+.main-content {
+    flex: 1;
+    padding: var(--spacing-xl) 0;
 }
 
 .podium-item {
