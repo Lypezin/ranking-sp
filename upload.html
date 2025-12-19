@@ -267,18 +267,32 @@
                         // Converter para JSON
                         let jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-                        // Normalizar datas
+                        // Normalizar dados
                         jsonData = jsonData.map(row => {
+                            // 1. Normalizar data_do_periodo (DATE)
                             if (row.data_do_periodo instanceof Date) {
-                                // Ajustar fuso horário para garantir o dia correto
                                 const date = new Date(row.data_do_periodo);
                                 date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-                                row.data_do_periodo = date.toISOString();
+                                // Postgres DATE aceita YYYY-MM-DD
+                                row.data_do_periodo = date.toISOString().split('T')[0];
                             } else if (typeof row.data_do_periodo === 'number') {
-                                // Caso raro: número serial Excel (se cellDates falhar)
                                 const date = new Date(Math.round((row.data_do_periodo - 25569) * 86400 * 1000));
-                                row.data_do_periodo = date.toISOString();
+                                row.data_do_periodo = date.toISOString().split('T')[0];
                             }
+
+                            // 2. Normalizar colunas de tempo/duração (INTERVAL)
+                            const timeColumns = ['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'];
+
+                            timeColumns.forEach(col => {
+                                if (row[col] instanceof Date) {
+                                    const d = row[col];
+                                    const hours = d.getUTCHours().toString().padStart(2, '0');
+                                    const minutes = d.getUTCMinutes().toString().padStart(2, '0');
+                                    const seconds = d.getUTCSeconds().toString().padStart(2, '0');
+                                    row[col] = `${hours}:${minutes}:${seconds}`;
+                                }
+                            });
+
                             return row;
                         });
 
