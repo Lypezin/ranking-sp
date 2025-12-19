@@ -504,14 +504,6 @@ body {
         align-items: flex-end;
     }
 
-    .podium-item {
-        /* Allow shrinking to fit small screens */
-        flex: 1;
-        width: auto;
-        max-width: 32%;
-        /* Ensure 3 fit in row */
-    }
-
     .podium-item.rank-1 .podium-bar {
         height: 160px;
     }
@@ -522,6 +514,19 @@ body {
 
     .podium-item.rank-3 .podium-bar {
         height: 100px;
+    }
+
+    /* Remove negative margins on mobile to prevent overlap */
+    .podium-item.rank-2,
+    .podium-item.rank-3 {
+        margin-bottom: 0;
+    }
+
+    /* Use fixed width to ensure they don't squash each other */
+    .podium-item {
+        flex: 0 0 32%;
+        width: 32%;
+        max-width: 32%;
     }
 
     .podium-rank {
