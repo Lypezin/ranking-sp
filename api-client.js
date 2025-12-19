@@ -151,6 +151,10 @@ async function limparTodosDados() {
  */
 async function uploadCompleto(turnosProcessados) {
     try {
+        // Passo 0: Limpar dados antigos para evitar duplicação
+        console.log('Limpando dados antigos...');
+        await limparTodosDados();
+
         console.log(`Iniciando upload de ${turnosProcessados.length} turnos...`);
 
         // Passo 1: Inserir turnos em lotes
