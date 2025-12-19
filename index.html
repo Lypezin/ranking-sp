@@ -40,6 +40,11 @@
                     </div>
                 </section>
 
+                <!-- Podium Section -->
+                <section id="podium-section" class="podium-section hidden">
+                    <div id="podium-container" class="podium-container"></div>
+                </section>
+
                 <!-- Ranking Section -->
                 <section id="ranking-section">
                     <!-- Loading state -->
@@ -48,10 +53,10 @@
                         <p>Carregando ranking...</p>
                     </div>
 
-                    <!-- Ranking List -->
+                    <!-- Ranking List (Position 4+) -->
                     <div id="ranking-list" class="ranking-list hidden"></div>
 
-                    <!-- Empty State -->
+                    <!-- ... empty state and error state ... -->
                     <div id="empty-state" class="empty-state hidden">
                         <div class="empty-state-icon">📭</div>
                         <p class="empty-state-text">Nenhum entregador encontrado.</p>
@@ -61,7 +66,6 @@
                         </p>
                     </div>
 
-                    <!-- Error State -->
                     <div id="error-state" class="hidden">
                         <div class="alert alert-error">
                             <span>⚠️</span>
@@ -80,46 +84,32 @@
     <script type="module">
         import { SupabaseClient } from './api-client.js';
 
-        // Configuração do Supabase
-        // Variáveis injetadas automaticamente pelo Vite a partir das env vars da Vercel
+        // ... configuration ...
         const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
         const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-        // Estado da aplicação
         let todosEntregadores = [];
         let supabaseClient = null;
 
-        // Elementos do DOM
         const loadingState = document.getElementById('loading-state');
         const rankingList = document.getElementById('ranking-list');
+        const podiumSection = document.getElementById('podium-section');
+        const podiumContainer = document.getElementById('podium-container');
         const emptyState = document.getElementById('empty-state');
         const errorState = document.getElementById('error-state');
         const errorMessage = document.getElementById('error-message');
         const searchInput = document.getElementById('search-input');
 
-        /**
-         * Inicializa a aplicação
-         */
+        // ... inicializar ...
         async function inicializar() {
             try {
-                // Verificar se as credenciais foram configuradas
                 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
                     mostrarErro('Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY na Vercel');
                     return;
                 }
 
-                // Inicializar Supabase
                 supabaseClient = SupabaseClient.initSupabase(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-                if (!supabaseClient) {
-                    mostrarErro('Erro ao inicializar Supabase');
-                    return;
-                }
-
-                // Carregar ranking
                 await carregarRanking();
-
-                // Configurar pesquisa
                 configurarPesquisa();
 
             } catch (error) {
@@ -128,9 +118,7 @@
             }
         }
 
-        /**
-         * Carrega o ranking do Supabase
-         */
+        // ... carregarRanking ...
         async function carregarRanking() {
             mostrarLoading();
 
@@ -151,60 +139,72 @@
         }
 
         /**
-         * Renderiza a lista de entregadores
+         * Renderiza o pódio e a lista
          */
         function renderizarRanking(entregadores) {
             esconderTodosEstados();
-            rankingList.classList.remove('hidden');
 
-            rankingList.innerHTML = entregadores.map((entregador, index) => {
-                const posicao = index + 1;
-                return `
-                    <div class="ranking-item">
-                        <div class="ranking-position">${posicao}</div>
-                        <div class="ranking-info">
-                            <div class="ranking-name">${entregador.pessoa_entregadora}</div>
-                            <div class="ranking-details">
-                                ${entregador.total_entregas} entregas • 
-                                ${entregador.total_turnos} turnos • 
-                                ${entregador.media_percentual_online.toFixed(1)}% online médio
+            // Separar Top 3 para pódio
+            const top3 = entregadores.slice(0, 3);
+            const resto = entregadores.slice(3);
+
+            // Renderizar Pódio
+            if (top3.length > 0) {
+                podiumSection.classList.remove('hidden');
+                podiumContainer.innerHTML = top3.map((entregador, index) => {
+                    const rank = index + 1;
+                    return `
+                        <div class="podium-item rank-${rank}">
+                            <div class="podium-avatar">
+                                ${rank}
+                                ${rank === 1 ? '<div class="icon-crown">👑</div>' : ''}
+                            </div>
+                            <div class="podium-bar">
+                                <div class="podium-rank">${rank}º</div>
+                                <div class="podium-points">${entregador.total_pontos.toLocaleString('pt-BR')}</div>
+                            </div>
+                            <div class="podium-name">${entregador.pessoa_entregadora.split(' ')[0]}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                podiumSection.classList.add('hidden');
+            }
+
+            // Renderizar Lista (4º em diante)
+            if (resto.length > 0) {
+                rankingList.classList.remove('hidden');
+                rankingList.innerHTML = resto.map((entregador, index) => {
+                    const posicao = index + 4;
+                    return `
+                        <div class="ranking-item">
+                            <div class="ranking-position">${posicao}</div>
+                            <div class="ranking-info">
+                                <div class="ranking-name">${entregador.pessoa_entregadora}</div>
+                                <div class="ranking-details">
+                                    ${entregador.total_entregas} entregas • ${entregador.media_percentual_online.toFixed(1)}% online
+                                </div>
+                            </div>
+                            <div class="ranking-points">
+                                <div class="points-value">${entregador.total_pontos.toLocaleString('pt-BR')}</div>
                             </div>
                         </div>
-                        <div class="ranking-points">
-                            <div class="points-value">${entregador.total_pontos.toLocaleString('pt-BR')}</div>
-                            <div class="points-label">Pontos</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }).join('');
+            } else if (top3.length === 0) {
+                mostrarVazio();
+            }
         }
 
-        /**
-         * Configura a funcionalidade de pesquisa
-         */
-        function configurarPesquisa() {
-            let timeoutId;
-
-            searchInput.addEventListener('input', (e) => {
-                const termo = e.target.value.trim().toLowerCase();
-
-                // Debounce
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(() => {
-                    pesquisarEntregadores(termo);
-                }, 300);
-            });
-        }
-
-        /**
-         * Pesquisa entregadores localmente
-         */
+        // ... pesquisarEntregadores ...
         function pesquisarEntregadores(termo) {
             if (!termo) {
+                // Restaurar visualização completa (Pódio + Lista)
                 renderizarRanking(todosEntregadores);
                 return;
             }
 
+            // Na busca, mostrar tudo como lista simples
             const resultados = todosEntregadores.filter(entregador =>
                 entregador.pessoa_entregadora.toLowerCase().includes(termo)
             );
@@ -212,32 +212,44 @@
             if (resultados.length === 0) {
                 mostrarVazio();
             } else {
-                renderizarRanking(resultados);
+                renderizarListaSimples(resultados);
             }
         }
 
         /**
-         * Utilitários para mostrar/esconder estados
+         * Renderiza lista simples para resultados de busca (sem pódio)
          */
-        function mostrarLoading() {
+        function renderizarListaSimples(entregadores) {
             esconderTodosEstados();
-            loadingState.classList.remove('hidden');
+            podiumSection.classList.add('hidden');
+            rankingList.classList.remove('hidden');
+
+            rankingList.innerHTML = entregadores.map((entregador) => {
+                // Encontrar posição original
+                const posicaoOriginal = todosEntregadores.findIndex(e => e.id_da_pessoa_entregadora === entregador.id_da_pessoa_entregadora) + 1;
+
+                return `
+                    <div class="ranking-item">
+                        <div class="ranking-position" style="${posicaoOriginal <= 3 ? 'background: var(--primary); color: white;' : ''}">${posicaoOriginal}</div>
+                        <div class="ranking-info">
+                            <div class="ranking-name">${entregador.pessoa_entregadora}</div>
+                            <div class="ranking-details">
+                                ${entregador.total_entregas} entregas • ${entregador.media_percentual_online.toFixed(1)}% online
+                            </div>
+                        </div>
+                        <div class="ranking-points">
+                            <div class="points-value">${entregador.total_pontos.toLocaleString('pt-BR')}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function mostrarVazio() {
-            esconderTodosEstados();
-            emptyState.classList.remove('hidden');
-        }
-
-        function mostrarErro(mensagem) {
-            esconderTodosEstados();
-            errorMessage.textContent = mensagem;
-            errorState.classList.remove('hidden');
-        }
-
+        // ... utilitários ...
         function esconderTodosEstados() {
             loadingState.classList.add('hidden');
             rankingList.classList.add('hidden');
+            podiumSection.classList.add('hidden');
             emptyState.classList.add('hidden');
             errorState.classList.add('hidden');
         }
