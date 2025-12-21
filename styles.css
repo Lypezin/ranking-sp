@@ -651,3 +651,30 @@ body {
         font-size: 0.55rem;
     }
 }
+
+/* === Admin / Upload Button === */
+.btn-admin {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+    z-index: 100;
+    color: var(--text-muted);
+}
+
+.btn-admin:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    border-color: var(--accent-blue);
+    transform: scale(1.1);
+}
