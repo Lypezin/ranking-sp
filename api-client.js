@@ -29,21 +29,65 @@ function initSupabase(url, key) {
 }
 
 /**
- * Busca o ranking de entregadores ordenado por pontos
- * @param {number} limit - Número máximo de resultados (padrão: 100)
- * @returns {Promise<Array>} - Array de entregadores ordenados por pontos
+ * Busca o ranking de entregadores
+ * Se um limit for passado e for <= 1000, faz uma query simples.
+ * Se limit for > 1000 ou null (buscar tudo), faz paginação automática.
  */
-async function buscarRanking(limit = 100) {
+async function buscarRanking(limit = 1000) {
     try {
-        const { data, error } = await supabase
-            .from('ranking_entregadores')
-            .select('*')
-            .order('total_pontos', { ascending: false })
-            .limit(limit);
+        // Se for uma busca simples pequena, usa o método padrão
+        if (limit && limit <= 1000) {
+            const { data, error } = await supabase
+                .from('ranking_entregadores')
+                .select('*')
+                .order('total_pontos', { ascending: false })
+                .limit(limit);
 
-        if (error) throw error;
+            if (error) throw error;
+            return data || [];
+        }
 
-        return data || [];
+        // Se precisar de mais de 1000, usamos paginação (range)
+        let todosEntregadores = [];
+        let from = 0;
+        const batchSize = 1000;
+        let buscarMais = true;
+        let totalLimit = limit || 1000000; // Limite alto se null
+
+        console.log('Iniciando busca paginada do ranking...');
+
+        while (buscarMais && todosEntregadores.length < totalLimit) {
+            const to = from + batchSize - 1;
+
+            const { data, error } = await supabase
+                .from('ranking_entregadores')
+                .select('*')
+                .order('total_pontos', { ascending: false })
+                .range(from, to);
+
+            if (error) throw error;
+
+            if (data && data.length > 0) {
+                todosEntregadores = todosEntregadores.concat(data);
+                from += batchSize;
+
+                // Se retornou menos que o batch, acabou
+                if (data.length < batchSize) {
+                    buscarMais = false;
+                }
+            } else {
+                buscarMais = false;
+            }
+        }
+
+        // Cortar se passou do limite solicitado (se não for null)
+        if (limit && todosEntregadores.length > limit) {
+            return todosEntregadores.slice(0, limit);
+        }
+
+        console.log(`Total de entregadores carregados: ${todosEntregadores.length}`);
+        return todosEntregadores;
+
     } catch (error) {
         console.error('Erro ao buscar ranking:', error);
         throw error;

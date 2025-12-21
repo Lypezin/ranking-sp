@@ -123,7 +123,8 @@
             mostrarLoading();
 
             try {
-                const ranking = await SupabaseClient.buscarRanking(500);
+                // Passando null para buscar TODOS (paginação automática)
+                const ranking = await SupabaseClient.buscarRanking(null);
                 todosEntregadores = ranking;
 
                 if (ranking.length === 0) {
