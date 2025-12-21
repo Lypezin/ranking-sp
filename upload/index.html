@@ -19,9 +19,9 @@
     <link rel="icon" type="image/png" href="../favicon.png">
 
     <style>
-        /* Page Specific Styles (could be in styles.css but kept here for modularity) */
+        /* Page Specific Styles */
         .upload-page-wrapper {
-            background: 
+            background:
                 radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.2) 0px, transparent 50%),
                 radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
                 var(--bg-body);
@@ -29,6 +29,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            /* Center vertically */
+            padding: 2rem 1rem;
+            /* Add some safety padding */
         }
 
         .glass-card {
@@ -37,34 +41,41 @@
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: var(--radius-lg);
-            padding: 2.5rem;
+            padding: 2rem;
+            /* Reduced from 2.5rem */
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
         }
 
         .upload-header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 1.5rem;
+            /* Reduced from 3rem */
         }
 
         .upload-title {
-            font-size: 2.5rem;
+            font-size: 2rem;
+            /* Reduced from 2.5rem */
             font-weight: 800;
             background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
             -webkit-background-clip: text;
+            background-clip: text;
+            /* Fix lint */
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
 
         .upload-subtitle {
             color: var(--text-secondary);
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .upload-zone {
             border: 2px dashed rgba(255, 255, 255, 0.15);
             border-radius: var(--radius-md);
-            padding: 4rem 2rem;
+            padding: 2.5rem 1.5rem;
+            /* Reduced from 4rem 2rem */
             text-align: center;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
@@ -73,16 +84,19 @@
             overflow: hidden;
         }
 
-        .upload-zone:hover, .upload-zone.drag-over {
+        .upload-zone:hover,
+        .upload-zone.drag-over {
             border-color: var(--accent-blue);
             background: rgba(59, 130, 246, 0.05);
             transform: scale(1.01);
         }
 
         .upload-zone-icon {
-            font-size: 4rem;
+            font-size: 3rem;
+            /* Reduced from 4rem */
             color: var(--text-muted);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
+            /* Reduced from 1.5rem */
             transition: all 0.3s ease;
         }
 
@@ -92,15 +106,15 @@
         }
 
         .upload-zone h3 {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
             color: var(--text-primary);
         }
 
         .upload-zone p {
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .file-input {
@@ -178,7 +192,7 @@
             gap: 0.5rem;
             transition: color 0.2s;
         }
-        
+
         .instructions-toggle:hover {
             color: var(--text-secondary);
         }
@@ -192,9 +206,10 @@
         }
 
         .instructions-panel.open {
-            max-height: 500px; /* arbitrary large enough height */
+            max-height: 500px;
+            /* arbitrary large enough height */
         }
-        
+
         .instructions-list {
             background: rgba(255, 255, 255, 0.03);
             border-radius: var(--radius-md);
@@ -229,9 +244,20 @@
             animation: slideUp 0.3s ease-out;
         }
 
-        .status-card.info { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); }
-        .status-card.success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); }
-        .status-card.error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .status-card.info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .status-card.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-card.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
 
         .progress-container {
             width: 100%;
@@ -250,8 +276,15 @@
         }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -262,11 +295,12 @@
             <span>←</span> Voltar ao Ranking
         </a>
 
-        <div class="container" style="max-width: 600px; margin-top: 8vh;">
+        <div class="container" style="max-width: 600px;">
             <div class="glass-card">
                 <div class="upload-header">
                     <h1 class="upload-title">Importar Dados</h1>
-                    <p class="upload-subtitle">Faça o upload do seu relatório Excel (.xlsx) para atualizar o ranking automaticamente.</p>
+                    <p class="upload-subtitle">Faça o upload do seu relatório Excel (.xlsx) para atualizar o ranking
+                        automaticamente.</p>
                 </div>
 
                 <div id="upload-area" class="upload-zone">
@@ -280,7 +314,8 @@
                 <div id="file-info" class="status-card info hidden">
                     <div style="font-size: 1.5rem;">📄</div>
                     <div style="flex: 1;">
-                        <strong id="file-name" style="color: var(--text-primary); display: block;">nome-do-arquivo.xlsx</strong>
+                        <strong id="file-name"
+                            style="color: var(--text-primary); display: block;">nome-do-arquivo.xlsx</strong>
                         <span id="file-details" style="font-size: 0.8rem; color: var(--text-secondary);">25 KB</span>
                     </div>
                     <div style="font-size: 1.2rem; color: var(--accent-blue);">✓</div>
@@ -288,7 +323,8 @@
 
                 <!-- Progress Section -->
                 <div id="progress-section" class="hidden" style="margin-top: 1.5rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
                         <span id="progress-text" style="color: var(--text-primary);">Processando...</span>
                         <span id="progress-percentage" style="color: var(--accent-blue);">0%</span>
                     </div>
@@ -307,16 +343,18 @@
                     <div style="font-size: 1.5rem;">✅</div>
                     <div>
                         <strong style="color: #34d399; display: block;">Sucesso!</strong>
-                        <span id="success-details" style="color: var(--text-secondary); font-size: 0.9rem;">Dados processados.</span>
+                        <span id="success-details" style="color: var(--text-secondary); font-size: 0.9rem;">Dados
+                            processados.</span>
                     </div>
                 </div>
 
-                 <!-- Error State -->
-                 <div id="error-message" class="status-card error hidden">
+                <!-- Error State -->
+                <div id="error-message" class="status-card error hidden">
                     <div style="font-size: 1.5rem;">❌</div>
                     <div>
                         <strong style="color: #f87171; display: block;">Erro</strong>
-                        <span id="error-details" style="color: var(--text-secondary); font-size: 0.9rem;">Algo deu errado.</span>
+                        <span id="error-details" style="color: var(--text-secondary); font-size: 0.9rem;">Algo deu
+                            errado.</span>
                     </div>
                 </div>
 
@@ -380,7 +418,7 @@
         // Instructions Toggle
         const toggleInstructionsBtn = document.getElementById('toggle-instructions');
         const instructionsPanel = document.getElementById('instructions-panel');
-        
+
         toggleInstructionsBtn.addEventListener('click', () => {
             instructionsPanel.classList.toggle('open');
         });
@@ -400,9 +438,9 @@
             // Listeners
             uploadArea.addEventListener('click', (e) => {
                 // Avoid double trigger if clicking input
-                if(e.target !== fileInput) fileInput.click();
+                if (e.target !== fileInput) fileInput.click();
             });
-            
+
             fileInput.addEventListener('change', handleFileSelect);
             uploadBtn.addEventListener('click', processarEEnviar);
 
@@ -442,12 +480,12 @@
             fileName.textContent = file.name;
             fileDetails.textContent = `${(file.size / 1024).toFixed(1)} KB`;
             fileInfo.classList.remove('hidden');
-            
+
             try {
                 // Simples pré-processamento para UX visual imediata
                 dropTextTitle.textContent = "Arquivo selecionado!";
                 uploadArea.style.borderColor = "var(--accent-blue)";
-                
+
                 await lerEParsearExcel(file);
                 // Se der certo, mostra botão
                 uploadBtn.classList.remove('hidden');
@@ -529,7 +567,7 @@
 
             try {
                 atualizarProgresso(10, 'Iniciando cálculos...');
-                
+
                 // Simulating a tiny delay for UX so user sees "Started"
                 await new Promise(r => setTimeout(r, 300));
 
@@ -571,7 +609,7 @@
                 await SupabaseClient.uploadCompleto(turnosParaInserir);
 
                 atualizarProgresso(100, 'Concluído!');
-                
+
                 setTimeout(() => {
                     mostrarSucesso(`${turnosParaInserir.length} turnos atualizados!`);
                     uploadBtn.innerHTML = `<span>🚀</span> Processar Novamente`;
@@ -615,4 +653,5 @@
         document.addEventListener('DOMContentLoaded', inicializar);
     </script>
 </body>
+
 </html>
