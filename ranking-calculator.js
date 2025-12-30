@@ -16,8 +16,11 @@
  * @returns {boolean}
  */
 function isDataEspecial(date) {
-    const dia = date.getDate();
-    const mes = date.getMonth() + 1; // getMonth() retorna 0-11
+    // Usar UTC para evitar problemas de fuso horário
+    // A string de data "YYYY-MM-DD" é interpretada como UTC meia-noite
+    // Se usarmos getDate() local no Brasil (GMT-3), volta um dia (ex: 25 vira 24)
+    const dia = date.getUTCDate();
+    const mes = date.getUTCMonth() + 1; // getUTCMonth() retorna 0-11
 
     // Datas especiais: 24/12, 25/12, 31/12, 01/01
     return (
