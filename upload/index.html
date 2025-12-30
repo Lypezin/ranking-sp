@@ -511,7 +511,7 @@
                         let jsonData = XLSX.utils.sheet_to_json(worksheet);
 
                         // Normalização (igual ao original)
-                            // Normalização de Datas
+                        // Normalização de Datas
                         jsonData = jsonData.map(row => {
                             if (row.data_do_periodo instanceof Date) {
                                 // SheetJS normalmente define datas como UTC meia-noite
@@ -538,7 +538,13 @@
                                     const h = d.getUTCHours().toString().padStart(2, '0');
                                     const m = d.getUTCMinutes().toString().padStart(2, '0');
                                     const s = d.getUTCSeconds().toString().padStart(2, '0');
-                                    row[col] = `${h}:${m}:${s}`;
+                                    // Adicionar milissegundos para precisão máxima
+                                    const ms = d.getUTCMilliseconds();
+                                    const sFormatted = ms > 0
+                                        ? `${s}.${ms.toString().padStart(3, '0')}`
+                                        : s;
+
+                                    row[col] = `${h}:${m}:${sFormatted}`;
                                 }
                             });
                             return row;

@@ -44,7 +44,7 @@ function durationToSeconds(duration) {
 
     const hours = parseInt(parts[0]) || 0;
     const minutes = parseInt(parts[1]) || 0;
-    const seconds = parseInt(parts[2]) || 0;
+    const seconds = parseFloat(parts[2]) || 0; // Use parseFloat to include milliseconds
 
     return hours * 3600 + minutes * 60 + seconds;
 }
