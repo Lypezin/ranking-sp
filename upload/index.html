@@ -511,14 +511,24 @@
                         let jsonData = XLSX.utils.sheet_to_json(worksheet);
 
                         // Normalização (igual ao original)
+                            // Normalização de Datas
                         jsonData = jsonData.map(row => {
                             if (row.data_do_periodo instanceof Date) {
-                                const date = new Date(row.data_do_periodo);
-                                date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-                                row.data_do_periodo = date.toISOString().split('T')[0];
+                                // SheetJS normalmente define datas como UTC meia-noite
+                                // Usamos métodos UTC para extrair a data exata sem influência do fuso horário local
+                                const d = row.data_do_periodo;
+                                const year = d.getUTCFullYear();
+                                const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+                                const day = String(d.getUTCDate()).padStart(2, '0');
+                                row.data_do_periodo = `${year}-${month}-${day}`;
                             } else if (typeof row.data_do_periodo === 'number') {
+                                // Excel serial date (dias desde 1900)
+                                // Ajuste padrão para JS Date
                                 const date = new Date(Math.round((row.data_do_periodo - 25569) * 86400 * 1000));
-                                row.data_do_periodo = date.toISOString().split('T')[0];
+                                const year = date.getUTCFullYear();
+                                const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+                                const day = String(date.getUTCDate()).padStart(2, '0');
+                                row.data_do_periodo = `${year}-${month}-${day}`;
                             }
 
                             const timeColumns = ['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'];
