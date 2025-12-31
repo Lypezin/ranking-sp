@@ -215,21 +215,25 @@ function calcularRanking(turnos) {
                 total_pontos: 0,
                 total_entregas: 0,
                 total_turnos: 0,
-                soma_percentual_online: 0
+                _soma_percentual_online: 0 // Campo interno, não será enviado ao banco
             };
         }
 
         entregadores[id].total_pontos += turno.total_pontos_final || 0;
         entregadores[id].total_entregas += turno.numero_de_corridas_completadas || 0;
         entregadores[id].total_turnos += 1;
-        entregadores[id].soma_percentual_online += turno.percentual_tempo_online || 0;
+        entregadores[id]._soma_percentual_online += turno.percentual_tempo_online || 0;
     });
 
-    // Calcular média e converter para array
+    // Calcular média e converter para array (removendo campo interno)
     const ranking = Object.values(entregadores).map(entregador => ({
-        ...entregador,
+        id_da_pessoa_entregadora: entregador.id_da_pessoa_entregadora,
+        pessoa_entregadora: entregador.pessoa_entregadora,
+        total_pontos: entregador.total_pontos,
+        total_entregas: entregador.total_entregas,
+        total_turnos: entregador.total_turnos,
         media_percentual_online: parseFloat(
-            (entregador.soma_percentual_online / entregador.total_turnos).toFixed(2)
+            (entregador._soma_percentual_online / entregador.total_turnos).toFixed(2)
         )
     }));
 
