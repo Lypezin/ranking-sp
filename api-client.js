@@ -193,13 +193,13 @@ async function limparTodosDados() {
  * @param {Array} turnosProcessados - Turnos já com pontos calculados
  * @returns {Promise<Object>} - Resultado do upload
  */
-async function uploadCompleto(turnosProcessados) {
+async function uploadCompleto(turnosProcessados, rankingCalculado = null) {
     try {
-        // Passo 0: Limpar dados antigos (DESATIVADO: Agora faz append)
-        // console.log('Limpando dados antigos...');
-        // await limparTodosDados();
+        // Passo 0: Limpar dados antigos para evitar duplicação
+        console.log('Limpando dados antigos...');
+        await limparTodosDados();
 
-        console.log(`Iniciando upload (append) de ${turnosProcessados.length} turnos...`);
+        console.log(`Iniciando upload de ${turnosProcessados.length} turnos...`);
 
         // Passo 1: Inserir turnos em lotes
         const BATCH_SIZE = 500;
@@ -209,9 +209,15 @@ async function uploadCompleto(turnosProcessados) {
             console.log(`Processado lote ${Math.floor(i / BATCH_SIZE) + 1} de ${Math.ceil(turnosProcessados.length / BATCH_SIZE)}`);
         }
 
-        // Passo 2: Recalcular ranking
-        console.log('Recalculando ranking...');
-        await recalcularRanking();
+        // Passo 2: Inserir ranking calculado pelo JavaScript (se fornecido)
+        if (rankingCalculado && rankingCalculado.length > 0) {
+            console.log('Inserindo ranking calculado pelo JavaScript...');
+            await inserirRankingCalculado(rankingCalculado);
+        } else {
+            // Fallback: usar função do Supabase
+            console.log('Recalculando ranking via Supabase...');
+            await recalcularRanking();
+        }
 
         console.log('Upload completo com sucesso!');
         return {
@@ -220,6 +226,29 @@ async function uploadCompleto(turnosProcessados) {
         };
     } catch (error) {
         console.error('Erro no upload completo:', error);
+        throw error;
+    }
+}
+
+/**
+ * Insere o ranking calculado pelo JavaScript diretamente na tabela
+ * @param {Array} ranking - Array de entregadores com pontos calculados
+ */
+async function inserirRankingCalculado(ranking) {
+    try {
+        // Inserir em lotes
+        const BATCH_SIZE = 500;
+        for (let i = 0; i < ranking.length; i += BATCH_SIZE) {
+            const batch = ranking.slice(i, i + BATCH_SIZE);
+            const { error } = await supabase
+                .from('ranking_entregadores')
+                .insert(batch);
+
+            if (error) throw error;
+        }
+        console.log(`Ranking inserido: ${ranking.length} entregadores`);
+    } catch (error) {
+        console.error('Erro ao inserir ranking:', error);
         throw error;
     }
 }
@@ -254,5 +283,6 @@ export const SupabaseClient = {
     recalcularRanking,
     limparTodosDados,
     uploadCompleto,
+    inserirRankingCalculado,
     verificarConexao
 };

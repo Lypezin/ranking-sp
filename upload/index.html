@@ -379,7 +379,7 @@
     <script type="module">
         // Import paths updated to go up one level
         import { SupabaseClient } from '../api-client.js';
-        import { processarTodosOsTurnos } from '../ranking-calculator.js';
+        import { processarTodosOsTurnos, calcularRanking } from '../ranking-calculator.js';
 
         // Configuração do Supabase
         const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -621,8 +621,13 @@
                     total_pontos_final: turno.total_pontos_final
                 }));
 
+                // Calcular ranking diretamente no JavaScript (mesma lógica do Excel)
+                atualizarProgresso(60, 'Calculando ranking...');
+                const rankingCalculado = calcularRanking(turnosProcessados);
+                console.log('Ranking calculado:', rankingCalculado.length, 'entregadores');
+
                 atualizarProgresso(70, `Enviando ${turnosParaInserir.length} registros...`);
-                await SupabaseClient.uploadCompleto(turnosParaInserir);
+                await SupabaseClient.uploadCompleto(turnosParaInserir, rankingCalculado);
 
                 atualizarProgresso(100, 'Concluído!');
 
