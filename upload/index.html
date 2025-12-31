@@ -505,7 +505,8 @@
                 reader.onload = (e) => {
                     try {
                         const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                        // Ler SEM cellDates para obter valores numéricos brutos (maior precisão)
+                        const workbook = XLSX.read(data, { type: 'array' });
                         const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
                         let jsonData = XLSX.utils.sheet_to_json(worksheet);
@@ -533,19 +534,25 @@
 
                             const timeColumns = ['duracao_do_periodo', 'tempo_disponivel_escalado', 'tempo_disponivel_absoluto'];
                             timeColumns.forEach(col => {
-                                if (row[col] instanceof Date) {
-                                    const d = row[col];
+                                const value = row[col];
+
+                                if (value instanceof Date) {
+                                    // Converter Date para string HH:MM:SS
+                                    const d = value;
                                     const h = d.getUTCHours().toString().padStart(2, '0');
                                     const m = d.getUTCMinutes().toString().padStart(2, '0');
                                     const s = d.getUTCSeconds().toString().padStart(2, '0');
-                                    // Adicionar milissegundos para precisão máxima
-                                    const ms = d.getUTCMilliseconds();
-                                    const sFormatted = ms > 0
-                                        ? `${s}.${ms.toString().padStart(3, '0')}`
-                                        : s;
-
-                                    row[col] = `${h}:${m}:${sFormatted}`;
+                                    row[col] = `${h}:${m}:${s}`;
+                                } else if (typeof value === 'number') {
+                                    // Excel armazena tempo como fração de dia
+                                    // Converter para segundos totais, arredondando para evitar imprecisões
+                                    const totalSeconds = Math.round(value * 86400);
+                                    const h = Math.floor(totalSeconds / 3600);
+                                    const m = Math.floor((totalSeconds % 3600) / 60);
+                                    const s = totalSeconds % 60;
+                                    row[col] = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
                                 }
+                                // Se já for string, mantém como está
                             });
                             return row;
                         });

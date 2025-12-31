@@ -70,12 +70,18 @@ function calcularPercentualOnline(tempoOnline, duracaoTurno) {
  * @returns {Object} - Objeto com todos os pontos calculados
  */
 function calcularPontosTurno(turno) {
-    const percentualOnline = calcularPercentualOnline(
-        turno.tempo_disponivel_absoluto,
-        turno.duracao_do_periodo
-    );
+    const segundosOnline = durationToSeconds(turno.tempo_disponivel_absoluto);
+    const segundosTurno = durationToSeconds(turno.duracao_do_periodo);
 
-    const isOnline90Plus = percentualOnline >= 90;
+    // Calcular ratio exatamente como Excel faz: L/C
+    const ratioOnline = segundosTurno > 0 ? segundosOnline / segundosTurno : 0;
+
+    // Excel usa: =SE(T2>=0,9;50;0) - compara ratio direto com 0.9
+    const isOnline90Plus = ratioOnline >= 0.9;
+
+    // Converter para percentual apenas para exibição
+    const percentualOnline = ratioOnline * 100;
+
     const dataEspecial = isDataEspecial(new Date(turno.data_do_periodo));
 
     // 1. Pontos por entregas (10 pontos cada)
