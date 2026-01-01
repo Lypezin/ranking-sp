@@ -119,6 +119,28 @@ async function buscarEntregadoresPorNome(termoPesquisa, limit = 50) {
 }
 
 /**
+ * Busca detalhes dos turnos de um entregador específico
+ * @param {string} idEntregador - ID da pessoa entregadora
+ * @returns {Promise<Array>} - Lista de turnos do entregador
+ */
+async function buscarDetalhesTurnos(idEntregador) {
+    try {
+        const { data, error } = await supabase
+            .from('turnos_entregadores')
+            .select('*')
+            .eq('id_da_pessoa_entregadora', idEntregador)
+            .order('data_do_periodo', { ascending: false });
+
+        if (error) throw error;
+
+        return data || [];
+    } catch (error) {
+        console.error('Erro ao buscar detalhes:', error);
+        throw error;
+    }
+}
+
+/**
  * Insere múltiplos turnos no banco de dados
  * NOTA: Requer service_role_key (usar apenas no upload)
  * @param {Array} turnos - Array de turnos para inserir
@@ -279,6 +301,7 @@ export const SupabaseClient = {
     initSupabase,
     buscarRanking,
     buscarEntregadoresPorNome,
+    buscarDetalhesTurnos,
     inserirTurnos,
     recalcularRanking,
     limparTodosDados,
