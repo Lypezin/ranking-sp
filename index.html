@@ -202,6 +202,8 @@
                             <th>% Online</th>
                             <th>Pontos (Entregas)</th>
                             <th>Bônus Online</th>
+                            <th>Bônus Data</th>
+                            <th>Bônus Meta</th>
                             <th>Total</th>
                         </tr>
                     </thead>
@@ -220,6 +222,8 @@
                                     <td>${(t.percentual_tempo_online || 0).toFixed(1)}%</td>
                                     <td>${t.pontos_entregas || 0}</td>
                                     <td>${t.bonus_90_online || 0}</td>
+                                    <td>${t.bonus_data_especial || 0}</td>
+                                    <td>${t.bonus_meta_diaria || 0}</td>
                                     <td><strong>${t.total_pontos_final || 0}</strong></td>
                                 </tr>
                             `;
