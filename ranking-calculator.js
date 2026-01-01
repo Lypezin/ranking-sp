@@ -207,7 +207,7 @@ function processarTodosOsTurnos(turnos) {
  * @param {Array} turnos - Array de turnos já processados
  * @returns {Array} - Array de entregadores com pontos totais, ordenado por pontos
  */
-function calcularRanking(turnos) {
+    // Calcular ranking agregado por entregador
     const entregadores = {};
 
     // Agrupar por entregador
@@ -221,7 +221,12 @@ function calcularRanking(turnos) {
                 total_pontos: 0,
                 total_entregas: 0,
                 total_turnos: 0,
-                _soma_percentual_online: 0 // Campo interno, não será enviado ao banco
+                _soma_percentual_online: 0, // Campo interno, não será enviado ao banco
+                // Novos campos de detalhamento
+                total_pontos_entregas: 0,
+                total_bonus_online: 0,
+                total_bonus_data_especial: 0,
+                total_bonus_meta: 0
             };
         }
 
@@ -229,6 +234,12 @@ function calcularRanking(turnos) {
         entregadores[id].total_entregas += turno.numero_de_corridas_completadas || 0;
         entregadores[id].total_turnos += 1;
         entregadores[id]._soma_percentual_online += turno.percentual_tempo_online || 0;
+        
+        // Agregar detalhes
+        entregadores[id].total_pontos_entregas += turno.pontos_entregas || 0;
+        entregadores[id].total_bonus_online += turno.bonus_90_online || 0;
+        entregadores[id].total_bonus_data_especial += turno.bonus_data_especial || 0;
+        entregadores[id].total_bonus_meta += turno.bonus_meta_diaria || 0;
     });
 
     // Calcular média e converter para array (removendo campo interno)
@@ -240,7 +251,12 @@ function calcularRanking(turnos) {
         total_turnos: entregador.total_turnos,
         media_percentual_online: parseFloat(
             (entregador._soma_percentual_online / entregador.total_turnos).toFixed(2)
-        )
+        ),
+        // Passar os totais detalhados
+        total_pontos_entregas: entregador.total_pontos_entregas,
+        total_bonus_online: entregador.total_bonus_online,
+        total_bonus_data_especial: entregador.total_bonus_data_especial,
+        total_bonus_meta: entregador.total_bonus_meta
     }));
 
     // Ordenar por pontos (decrescente)

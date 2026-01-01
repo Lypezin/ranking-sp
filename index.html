@@ -191,6 +191,12 @@
                                 <div class="ranking-details">
                                     ${entregador.total_entregas} entregas
                                 </div>
+                                <div class="ranking-details-breakdown" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+                                    Entregas: ${entregador.total_pontos_entregas || 0} | 
+                                    Online: ${entregador.total_bonus_online || 0} | 
+                                    Datas: ${entregador.total_bonus_data_especial || 0} | 
+                                    Meta: ${entregador.total_bonus_meta || 0}
+                                </div>
                             </div>
                             <div class="ranking-points">
                                 <div class="points-value">${entregador.total_pontos.toLocaleString('pt-BR')}</div>
@@ -262,6 +268,12 @@
                             <div class="ranking-name">${entregador.pessoa_entregadora}</div>
                             <div class="ranking-details">
                                 ${entregador.total_entregas} entregas
+                            </div>
+                            <div class="ranking-details-breakdown" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+                                Entregas: ${entregador.total_pontos_entregas || 0} | 
+                                Online: ${entregador.total_bonus_online || 0} | 
+                                Datas: ${entregador.total_bonus_data_especial || 0} | 
+                                Meta: ${entregador.total_bonus_meta || 0}
                             </div>
                         </div>
                         <div class="ranking-points">
