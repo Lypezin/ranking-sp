@@ -207,6 +207,7 @@ function processarTodosOsTurnos(turnos) {
  * @param {Array} turnos - Array de turnos já processados
  * @returns {Array} - Array de entregadores com pontos totais, ordenado por pontos
  */
+function calcularRanking(turnos) {
     // Calcular ranking agregado por entregador
     const entregadores = {};
 
@@ -234,7 +235,7 @@ function processarTodosOsTurnos(turnos) {
         entregadores[id].total_entregas += turno.numero_de_corridas_completadas || 0;
         entregadores[id].total_turnos += 1;
         entregadores[id]._soma_percentual_online += turno.percentual_tempo_online || 0;
-        
+
         // Agregar detalhes
         entregadores[id].total_pontos_entregas += turno.pontos_entregas || 0;
         entregadores[id].total_bonus_online += turno.bonus_90_online || 0;
